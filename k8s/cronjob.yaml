@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pipeline-etl
+  namespace: CHANGE_ME
+spec:
+  schedule: "*/15 * * * *"   # every 15 min; adjust to taste
+  concurrencyPolicy: Forbid   # don't overlap runs if one is slow
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: pipeline-etl
+              image: CHANGE_ME/pipeline-etl:latest   # your internal registry + tag
+              env:
+                - name: HUBSPOT_PIPELINE_ID
+                  value: "default"   # Strive - US; confirm the real ID before relying on this
+                - name: HUBSPOT_OWNER_SCOPE
+                  value: "all"
+                - name: HUBSPOT_PRIVATE_APP_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: pipeline-etl-secrets
+                      key: HUBSPOT_PRIVATE_APP_TOKEN
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: pipeline-etl-secrets
+                      key: DATABASE_URL
+              resources:
+                requests:
+                  cpu: "50m"
+                  memory: "128Mi"
+                limits:
+                  cpu: "250m"
+                  memory: "256Mi"

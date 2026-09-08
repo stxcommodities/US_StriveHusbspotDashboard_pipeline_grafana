@@ -1,0 +1,127 @@
+{
+  "title": "Pipeline Dashboard",
+  "uid": "pipeline-dashboard",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "timezone": "browser",
+  "time": { "from": "now-7d", "to": "now" },
+  "refresh": "5m",
+  "tags": ["hubspot", "pipeline"],
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "postgres",
+        "current": {},
+        "hide": 0,
+        "label": "Postgres data source"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Total deals",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "${datasource}" },
+      "targets": [
+        {
+          "rawSql": "SELECT count(*) AS \"Total deals\" FROM deals_snapshot",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" } }, "overrides": [] }
+    },
+    {
+      "id": 2,
+      "title": "Total pipeline value",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "${datasource}" },
+      "targets": [
+        {
+          "rawSql": "SELECT coalesce(sum(amount), 0) AS \"Total value\" FROM deals_snapshot",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "currencyUSD", "color": { "mode": "thresholds" } },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "title": "Weighted value",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "${datasource}" },
+      "targets": [
+        {
+          "rawSql": "SELECT coalesce(sum(weighted_amount), 0) AS \"Weighted value\" FROM deals_snapshot",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "currencyUSD", "color": { "mode": "thresholds" } },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "title": "Changed (selected time range)",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "postgres", "uid": "${datasource}" },
+      "targets": [
+        {
+          "rawSql": "SELECT count(*) AS \"Changes\" FROM deal_stage_events WHERE changed_at BETWEEN $__timeFrom() AND $__timeTo()",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" } }, "overrides": [] }
+    },
+    {
+      "id": 5,
+      "title": "Deals by stage",
+      "type": "barchart",
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 5 },
+      "datasource": { "type": "postgres", "uid": "${datasource}" },
+      "targets": [
+        {
+          "rawSql": "SELECT stage_label AS \"Stage\", count(*) AS \"Deals\", coalesce(sum(amount), 0) AS \"Value\" FROM deals_snapshot GROUP BY stage_label ORDER BY min(snapshot_at)",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "options": { "orientation": "horizontal", "xTickLabelRotation": 0 },
+      "fieldConfig": { "defaults": {}, "overrides": [] }
+    },
+    {
+      "id": 6,
+      "title": "What changed (selected time range)",
+      "type": "table",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 14 },
+      "datasource": { "type": "postgres", "uid": "${datasource}" },
+      "targets": [
+        {
+          "rawSql": "SELECT changed_at AS \"Time\", deal_name AS \"Deal\", event_type AS \"Event\", stage_label AS \"Stage\", amount AS \"Amount\" FROM deal_stage_events WHERE changed_at BETWEEN $__timeFrom() AND $__timeTo() ORDER BY changed_at DESC",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Amount" }, "properties": [{ "id": "unit", "value": "currencyUSD" }] }
+        ]
+      }
+    }
+  ]
+}
