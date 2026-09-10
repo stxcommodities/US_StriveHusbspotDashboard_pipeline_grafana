@@ -22,6 +22,8 @@ spec:
                   value: "default"   # Strive - US; confirm the real ID before relying on this
                 - name: HUBSPOT_OWNER_SCOPE
                   value: "all"
+                - name: DB_SCHEMA
+                  value: "hubspot_us"   # the dedicated schema provisioned in the tde database
                 - name: HUBSPOT_PRIVATE_APP_TOKEN
                   valueFrom:
                     secretKeyRef:

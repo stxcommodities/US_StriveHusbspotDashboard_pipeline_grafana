@@ -20,7 +20,16 @@ def get_conn():
             "DATABASE_URL is not set. Provide it via a Kubernetes Secret -- "
             "see k8s/db-secret.example.yaml."
         )
-    return psycopg2.connect(config.DATABASE_URL)
+    # Pin the session's search_path to the configured schema (falling back to
+    # public) rather than schema-qualifying every query by hand. config.py
+    # already validates DB_SCHEMA is alnum/underscore only, so this is safe
+    # to interpolate. Note: this requires USAGE on that schema for the
+    # connecting role -- if your role's default schema already matches its
+    # username (a common per-tenant pattern), this is redundant but harmless.
+    return psycopg2.connect(
+        config.DATABASE_URL,
+        options=f"-c search_path={config.DB_SCHEMA},public",
+    )
 
 
 def ensure_schema(conn) -> None:

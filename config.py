@@ -36,6 +36,11 @@ ETL / database (only needed by etl.py, not the Streamlit app):
                                  postgresql://user:pass@host:5432/dbname
                                  Provide via a Kubernetes Secret -- see
                                  k8s/db-secret.example.yaml.
+    DB_SCHEMA                    Postgres schema to create/use tables in.
+                                 Defaults to "public". Set this to your
+                                 dedicated schema (e.g. the one your platform
+                                 team provisions per-role) so tables land
+                                 there instead of the default schema.
 """
 
 import os
@@ -68,6 +73,17 @@ CACHE_TTL_SECONDS = _env_int("CACHE_TTL_SECONDS", 900)
 HUBSPOT_API_BASE = os.environ.get("HUBSPOT_API_BASE", "https://api.hubapi.com")
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
+
+# Postgres identifiers can't be parameterized with placeholders, so this is
+# validated strictly (letters, digits, underscore only) before ever being
+# interpolated into SQL, to rule out injection via a bad env var.
+_DB_SCHEMA_RAW = os.environ.get("DB_SCHEMA", "public").strip()
+if not _DB_SCHEMA_RAW.replace("_", "").isalnum():
+    raise ValueError(
+        f"DB_SCHEMA '{_DB_SCHEMA_RAW}' is invalid -- use only letters, "
+        "digits, and underscores."
+    )
+DB_SCHEMA = _DB_SCHEMA_RAW
 
 DEAL_PROPERTIES = [
     "dealname",

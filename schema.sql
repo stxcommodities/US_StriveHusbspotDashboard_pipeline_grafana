@@ -12,6 +12,10 @@
 --
 -- Run this once against your Postgres instance before the first ETL run
 -- (etl.py also runs it automatically on startup via ensure_schema()).
+--
+-- No CREATE SCHEMA here on purpose -- your role likely only has CREATE on a
+-- schema someone else already provisioned. db.py sets search_path to
+-- config.DB_SCHEMA on connect, so these CREATE TABLE statements land there.
 
 CREATE TABLE IF NOT EXISTS deals_snapshot (
     deal_id         TEXT PRIMARY KEY,
