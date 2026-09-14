@@ -48,10 +48,14 @@
           "refId": "A"
         }
       ],
+      "options": {
+        "colorMode": "background_solid"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#28695a"
           }
         },
         "overrides": []
@@ -78,11 +82,15 @@
           "refId": "A"
         }
       ],
+      "options": {
+        "colorMode": "background_solid"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "currencyUSD",
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#28695a"
           }
         },
         "overrides": []
@@ -109,11 +117,15 @@
           "refId": "A"
         }
       ],
+      "options": {
+        "colorMode": "background_solid"
+      },
       "fieldConfig": {
         "defaults": {
           "unit": "currencyUSD",
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#28695a"
           }
         },
         "overrides": []
@@ -140,10 +152,14 @@
           "refId": "A"
         }
       ],
+      "options": {
+        "colorMode": "background_solid"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "fixed",
+            "fixedColor": "#b8863b"
           }
         },
         "overrides": []
@@ -165,7 +181,7 @@
       },
       "targets": [
         {
-          "rawSql": "SELECT stage_label AS \"Stage\", count(*) AS \"Deals\", coalesce(sum(amount), 0) AS \"Value\" FROM hubspot_us.deals_snapshot GROUP BY stage_label ORDER BY min(snapshot_at)",
+          "rawSql": "SELECT coalesce(count(*) FILTER (WHERE stage_label = 'Discovery Initiated'), 0) AS \"Discovery Initiated\", coalesce(count(*) FILTER (WHERE stage_label = 'Discovery Completed'), 0) AS \"Discovery Completed\", coalesce(count(*) FILTER (WHERE stage_label = 'Parked Deals'), 0) AS \"Parked Deals\", coalesce(count(*) FILTER (WHERE stage_label = 'Negotiations Initiated'), 0) AS \"Negotiations Initiated\", coalesce(count(*) FILTER (WHERE stage_label = 'Contracting Initiated'), 0) AS \"Contracting Initiated\", coalesce(count(*) FILTER (WHERE stage_label = 'Closed Won'), 0) AS \"Closed Won\", coalesce(count(*) FILTER (WHERE stage_label = 'Closed Lost'), 0) AS \"Closed Lost\" FROM hubspot_us.deals_snapshot",
           "format": "table",
           "refId": "A"
         }
@@ -176,7 +192,113 @@
       },
       "fieldConfig": {
         "defaults": {},
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Discovery Initiated"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#6b8b9e"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Discovery Completed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#3f8a76"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Parked Deals"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#c08a3e"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Negotiations Initiated"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#a05a7a"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Contracting Initiated"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#7a6bb0"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Closed Won"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#2f8f5b"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Closed Lost"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#b7473a"
+                }
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -195,7 +317,7 @@
       },
       "targets": [
         {
-          "rawSql": "SELECT \"Time\", \"Deal\", \"Event\", \"Stage before\", \"Stage\", \"Amount\" FROM (SELECT changed_at AS \"Time\", deal_name AS \"Deal\", event_type AS \"Event\", LAG(stage_label) OVER (PARTITION BY deal_id ORDER BY changed_at) AS \"Stage before\", stage_label AS \"Stage\", amount AS \"Amount\" FROM hubspot_us.deal_stage_events) sub WHERE \"Time\" BETWEEN $__timeFrom() AND $__timeTo() ORDER BY \"Time\" DESC",
+          "rawSql": "SELECT \"Time\", \"Deal\", \"Event\", \"Stage before\", \"Stage after\", \"Amount\" FROM (SELECT changed_at AS \"Time\", deal_name AS \"Deal\", event_type AS \"Event\", LAG(stage_label) OVER (PARTITION BY deal_id ORDER BY changed_at) AS \"Stage before\", stage_label AS \"Stage after\", amount AS \"Amount\" FROM hubspot_us.deal_stage_events) sub WHERE \"Time\" BETWEEN $__timeFrom() AND $__timeTo() ORDER BY \"Time\" DESC",
           "format": "table",
           "refId": "A"
         }
@@ -212,6 +334,110 @@
               {
                 "id": "unit",
                 "value": "currencyUSD"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Stage before"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Discovery Initiated": {
+                        "color": "#6b8b9e",
+                        "index": 0
+                      },
+                      "Discovery Completed": {
+                        "color": "#3f8a76",
+                        "index": 1
+                      },
+                      "Parked Deals": {
+                        "color": "#c08a3e",
+                        "index": 2
+                      },
+                      "Negotiations Initiated": {
+                        "color": "#a05a7a",
+                        "index": 3
+                      },
+                      "Contracting Initiated": {
+                        "color": "#7a6bb0",
+                        "index": 4
+                      },
+                      "Closed Won": {
+                        "color": "#2f8f5b",
+                        "index": 5
+                      },
+                      "Closed Lost": {
+                        "color": "#b7473a",
+                        "index": 6
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Stage after"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Discovery Initiated": {
+                        "color": "#6b8b9e",
+                        "index": 0
+                      },
+                      "Discovery Completed": {
+                        "color": "#3f8a76",
+                        "index": 1
+                      },
+                      "Parked Deals": {
+                        "color": "#c08a3e",
+                        "index": 2
+                      },
+                      "Negotiations Initiated": {
+                        "color": "#a05a7a",
+                        "index": 3
+                      },
+                      "Contracting Initiated": {
+                        "color": "#7a6bb0",
+                        "index": 4
+                      },
+                      "Closed Won": {
+                        "color": "#2f8f5b",
+                        "index": 5
+                      },
+                      "Closed Lost": {
+                        "color": "#b7473a",
+                        "index": 6
+                      }
+                    }
+                  }
+                ]
               }
             ]
           }
