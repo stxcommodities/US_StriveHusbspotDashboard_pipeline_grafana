@@ -73,7 +73,7 @@
       },
       "targets": [
         {
-          "rawSql": "SELECT coalesce(sum(amount), 0) AS \"Total value\" FROM hubspot_us.deals_snapshot",
+          "rawSql": "SELECT coalesce(sum(amount), 0) AS \"Total value\" FROM hubspot_us.deals_snapshot WHERE NOT is_closed",
           "format": "table",
           "refId": "A"
         }
@@ -104,7 +104,7 @@
       },
       "targets": [
         {
-          "rawSql": "SELECT coalesce(sum(weighted_amount), 0) AS \"Weighted value\" FROM hubspot_us.deals_snapshot",
+          "rawSql": "SELECT coalesce(sum(weighted_amount), 0) AS \"Weighted value\" FROM hubspot_us.deals_snapshot WHERE NOT is_closed",
           "format": "table",
           "refId": "A"
         }
