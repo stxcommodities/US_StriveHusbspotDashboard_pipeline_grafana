@@ -181,7 +181,7 @@
     },
     {
       "id": 6,
-      "title": "What changed (selected time range)",
+      "title": "What changed",
       "type": "table",
       "gridPos": {
         "h": 10,
@@ -195,7 +195,7 @@
       },
       "targets": [
         {
-          "rawSql": "SELECT changed_at AS \"Time\", deal_name AS \"Deal\", event_type AS \"Event\", stage_label AS \"Stage\", amount AS \"Amount\" FROM hubspot_us.deal_stage_events WHERE changed_at BETWEEN $__timeFrom() AND $__timeTo() ORDER BY changed_at DESC",
+          "rawSql": "SELECT \"Time\", \"Deal\", \"Event\", \"Stage before\", \"Stage\", \"Amount\" FROM (SELECT changed_at AS \"Time\", deal_name AS \"Deal\", event_type AS \"Event\", LAG(stage_label) OVER (PARTITION BY deal_id ORDER BY changed_at) AS \"Stage before\", stage_label AS \"Stage\", amount AS \"Amount\" FROM hubspot_us.deal_stage_events) sub WHERE \"Time\" BETWEEN $__timeFrom() AND $__timeTo() ORDER BY \"Time\" DESC",
           "format": "table",
           "refId": "A"
         }
