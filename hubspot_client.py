@@ -204,9 +204,10 @@ def get_stage_change_history(deal_ids: list[str]) -> dict[str, list[dict]]:
         return {}
 
     history: dict[str, list[dict]] = {}
-    # HubSpot's batch read caps at 100 IDs per call.
-    for i in range(0, len(deal_ids), 100):
-        chunk = deal_ids[i : i + 100]
+    # HubSpot's batch/read endpoint caps at 50 items when propertiesWithHistory
+    # is included, even though plain batch reads allow up to 100.
+    for i in range(0, len(deal_ids), 50):
+        chunk = deal_ids[i : i + 50]
         body = {
             "inputs": [{"id": d} for d in chunk],
             "propertiesWithHistory": ["dealstage"],
